@@ -1,4 +1,4 @@
-import { ParsedReceipt, UserSelection, Props} from '../types/types';
+import { Props} from '../types/types';
 import { Box, Typography, Divider } from '@mui/material';
 
 

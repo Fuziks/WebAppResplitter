@@ -1,32 +1,12 @@
 import { useState, useEffect } from 'react';
 import { ReceiptItem } from './ReceiptItem';
-import { useTelegramWebApp } from '../hooks/useTelegramWebApp';
-import { 
-  TextField, 
-  Button, 
-  Dialog, 
-  DialogTitle, 
-  DialogContent, 
-  DialogActions, 
-  IconButton,
-  Box,
-  Typography,
-  Pagination,
-  Divider,
-  Alert
-} from '@mui/material';
+import { TextField, Button, Dialog, DialogTitle, DialogContent, DialogActions, IconButton, Box, Typography, Pagination, Divider, Alert} from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import CloseIcon from '@mui/icons-material/Close';
-import { ParsedReceipt, TelegramWebApp, ItemSelectionState, ItemSelectionProps } from '../types/types';
+import { ItemSelectionState, ItemSelectionProps } from '../types/types';
 import '../styles.css';
 
-export const ItemSelection = ({
-  webApp,
-  receipt,
-  isLoading,
-  error,
-  closeWebApp
-}: ItemSelectionProps) => {
+export const ItemSelection = ({webApp,receipt,isLoading,error,closeWebApp}: ItemSelectionProps) => {
   const [users, setUsers] = useState<string[]>([]);
   const [selectedItems, setSelectedItems] = useState<Record<string, ItemSelectionState>>({});
   const [searchQuery, setSearchQuery] = useState('');
@@ -56,15 +36,43 @@ export const ItemSelection = ({
     }
   }, [isLoading, webApp]);
 
+  const formatPhoneNumber = (number: string) => {
+    if (!number) return '';
+    const clean = number.startsWith('+') 
+      ? '+' + number.slice(1).replace(/\D/g, '')
+      : number.replace(/\D/g, '');
+    return clean;
+  };
+
   const validatePhoneNumber = (number: string) => {
-    const isValid = /^\+?\d+$/.test(number);
-    setPhoneError(isValid ? '' : 'Номер должен содержать только цифры и может начинаться с +');
-    return isValid;
+    const cleanNumber = formatPhoneNumber(number);
+    const digitCount = cleanNumber.startsWith('+') 
+      ? cleanNumber.length - 1 
+      : cleanNumber.length;
+    
+    const isValidLength = digitCount >= 10 && digitCount <= 15;
+    const isValidFormat = /^\+?\d+$/.test(cleanNumber);
+    
+    if (!isValidFormat) {
+      setPhoneError('Номер должен содержать только цифры и может начинаться с +');
+      return false;
+    }
+    
+    if (!isValidLength) {
+      setPhoneError(digitCount < 10 
+        ? 'Номер должен содержать минимум 10 цифр' 
+        : 'Номер должен содержать не более 15 цифр');
+      return false;
+    }
+    
+    setPhoneError('');
+    setPhoneNumber(cleanNumber);
+    return true;
   };
 
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const value = e.target.value;
-    const filteredValue = value.replace(/[^\d+]/g, '');
+    const filteredValue = formatPhoneNumber(value);
     setPhoneNumber(filteredValue);
     validatePhoneNumber(filteredValue);
   };
@@ -84,29 +92,21 @@ export const ItemSelection = ({
 
   const toggleUserForItem = (itemId: string, userId: string) => {
     setSelectedItems(prev => {
-      const currentSelection = prev[itemId] || { users: [], shares: {} };
-      const newUsers = currentSelection.users.includes(userId)
-        ? currentSelection.users.filter(u => u !== userId)
-        : [...currentSelection.users, userId];
+      const current = prev[itemId] || { users: [], shares: {} };
+      const newUsers = current.users.includes(userId)
+        ? current.users.filter(u => u !== userId)
+        : [...current.users, userId];
       
-      const newShares = { ...currentSelection.shares };
-      if (!newUsers.includes(userId)) {
-        delete newShares[userId];
-      } else if (!(userId in newShares)) {
-        newShares[userId] = 0;
-      }
-      
-      return { 
-        ...prev, 
-        [itemId]: { 
+      return {
+        ...prev,
+        [itemId]: {
           users: newUsers,
-          shares: newShares
-        } 
+          shares: current.shares
+        }
       };
     });
-    setDistributionError('');
   };
-
+  
   const updateUserShare = (itemId: string, userId: string, share: number) => {
     setSelectedItems(prev => ({
       ...prev,
@@ -118,7 +118,6 @@ export const ItemSelection = ({
         }
       }
     }));
-    setDistributionError('');
   };
 
   const addUser = () => {
@@ -146,14 +145,16 @@ export const ItemSelection = ({
 
   const checkDistribution = () => {
     if (!receipt) return true;
-
+  
     for (const item of receipt.items) {
       const itemSelection = selectedItems[item.id];
       if (!itemSelection) continue;
       
       const totalShares = Object.values(itemSelection.shares).reduce((sum, share) => sum + share, 0);
-      if (totalShares > item.quantity) {
-        setDistributionError(`Для "${item.name}" распределено порций: ${totalShares} из ${item.quantity}`);
+      const maxAllowed = item.quantity === 1 ? 1 : item.quantity;
+      
+      if (totalShares > maxAllowed) {
+        setDistributionError(`Для "${item.name}" распределено: ${totalShares} из ${maxAllowed}`);
         return false;
       }
     }
@@ -336,23 +337,39 @@ export const ItemSelection = ({
       </Typography>
       
       <Box mb={2}>
-        {paginatedItems.map((item) => (
-          <ReceiptItem
-            key={item.id}
-            item={item}
-            selected={!!selectedItems[item.id]}
-            onToggle={() => toggleItem(item.id)}
-            users={users}
-            selectedUsers={selectedItems[item.id]?.users || []}
-            onUserSelect={(userId) => toggleUserForItem(item.id, userId)}
-            onShareChange={(userId, share) => updateUserShare(item.id, userId, share)}
-            userShares={selectedItems[item.id]?.shares || {}}
-            totalShares={selectedItems[item.id]?.users?.reduce((sum, user) => {
-              return sum + (selectedItems[item.id]?.shares[user] || 0);
-            }, 0) || 0}
-          />
-        ))}
-      </Box>
+  {paginatedItems.map((item) => {
+    const totalSelected = Object.values(selectedItems[item.id]?.shares || {}).reduce((a, b) => a + b, 0);
+    const remainingPortions = item.quantity - totalSelected;
+    
+    return (
+      <ReceiptItem
+        key={item.id}
+        item={{
+          ...item,
+          name: `${item.name}${item.quantity > 1 ? ` (доступно ${remainingPortions}/${item.quantity})` : ''}`
+        }}
+        selected={!!selectedItems[item.id]}
+        onToggle={() => toggleItem(item.id)}
+        users={users}
+        selectedUsers={selectedItems[item.id]?.users || []}
+        onUserSelect={(userId) => toggleUserForItem(item.id, userId)}
+        onShareChange={(userId, share) => {
+          const currentUserShare = selectedItems[item.id]?.shares[userId] || 0;
+          const newTotal = totalSelected - currentUserShare + share;
+          
+          if (newTotal <= item.quantity) {
+            updateUserShare(item.id, userId, share);
+          } else {
+            webApp?.showAlert(`Нельзя выбрать больше ${remainingPortions + currentUserShare} порций`);
+          }
+        }}
+        userShares={selectedItems[item.id]?.shares || {}}
+        totalShares={totalSelected}
+        isFractional={item.quantity === 1}
+      />
+    );
+  })}
+</Box>
 
       {pageCount > 1 && (
         <Box display="flex" justifyContent="center" mb={2}>
@@ -400,7 +417,7 @@ export const ItemSelection = ({
         <DialogContent>
           <Typography variant="body2" gutterBottom sx={{ mb: 2 }}>
             Пожалуйста, укажите ваш номер телефона для оплаты. Он будет виден другим участникам.
-            <br />Номер должен содержать только цифры и может начинаться с +.
+      <br />Номер должен содержать только цифры и может начинаться с +.
           </Typography>
           <TextField
             autoFocus
@@ -409,13 +426,13 @@ export const ItemSelection = ({
             fullWidth
             value={phoneNumber}
             onChange={handlePhoneChange}
-            placeholder="79991234567 или +79991234567"
+            placeholder="+79991234567"
             type="tel"
             error={!!phoneError}
-            helperText={phoneError}
+            helperText={phoneError || "Введите от 10 до 15 цифр"}
             inputProps={{
               inputMode: 'tel',
-              pattern: '[+0-9]*'
+              maxLength: 19,
             }}
           />
         </DialogContent>

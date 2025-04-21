@@ -4,7 +4,7 @@ import { ReceiptItem } from '../types/types';
 
 export const MenuList = ({ items }: { items: ReceiptItem[] }) => {
   const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(8);
+  const [rowsPerPage] = useState(8);
 
   const handleChangePage = (_: unknown, newPage: number) => {
     setPage(newPage);

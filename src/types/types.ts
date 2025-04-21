@@ -68,6 +68,7 @@ export interface SyncData {
 export interface ItemSelectionState {
   users: string[];
   shares: Record<string, number>;
+  isFractional?: boolean;
 }
 
 export interface UseTelegramWebAppResult {
@@ -110,6 +111,7 @@ export interface ReceiptItemProps {
   onShareChange: (userId: string, share: number) => void;
   userShares: Record<string, number>;
   totalShares: number;
+  isFractional?: boolean;
 }
 
 export interface Props {

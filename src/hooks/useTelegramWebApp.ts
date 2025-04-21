@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { ParsedReceipt, TelegramWebApp, TelegramUser, UseTelegramWebAppResult } from '../types/types';
+import { ParsedReceipt, TelegramWebApp, UseTelegramWebAppResult } from '../types/types';
 
 
 export const useTelegramWebApp = (): UseTelegramWebAppResult => {
