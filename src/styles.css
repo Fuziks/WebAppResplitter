@@ -1,0 +1,247 @@
+:root {
+  --sber-green: #21A038;
+  --sber-dark-green: #1A8C30;
+  --sber-light-green: #E0F7E9;
+  --sber-gray: #F5F7FA;
+  --sber-text: #333333;
+  --sber-light-text: #777777;
+  --keyboard-height: 300px;
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  background-color: white;
+  color: var(--sber-text);
+  margin: 0;
+  padding: 0;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  padding: 16px;
+  max-width: 500px;
+  margin: 0 auto;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 5px solid #f3f3f3;
+  border-top: 5px solid #3498db;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin: 20px auto;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+.header {
+  font-size: 20px;
+  font-weight: bold;
+  margin-bottom: 20px;
+  color: var(--sber-text);
+}
+
+button,
+.MuiButton-contained {
+  background-color: var(--sber-green) !important;
+  color: white !important;
+  border: none !important;
+  border-radius: 8px !important;
+  padding: 12px 24px !important;
+  font-size: 16px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  transition: background-color 0.2s !important;
+  text-transform: none !important;
+  box-shadow: none !important;
+  min-width: 120px !important;
+}
+
+button:hover,
+.MuiButton-contained:hover {
+  background-color: var(--sber-dark-green) !important;
+}
+
+.MuiCheckbox-root, 
+.MuiChip-root,
+.MuiButtonBase-root {
+  pointer-events: auto !important;
+}
+
+.item-card {
+  background-color: white;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  border: 1px solid #E0E0E0;
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.item-card:hover {
+  background-color: #f9f9f9;
+}
+
+.item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.item-title {
+  font-weight: 500;
+  color: var(--sber-text);
+}
+
+.item-price {
+  color: var(--sber-green);
+  font-weight: bold;
+}
+
+.user-tag {
+  font-weight: 500;
+  padding: 8px 0;
+  color: var(--sber-text);
+  border-bottom: 2px solid var(--sber-green);
+  margin-bottom: 16px;
+}
+
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0;
+}
+
+.dishes-title {
+  text-align: center;
+  margin: 16px 0;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: var(--sber-text);
+}
+
+.MuiPagination-ul {
+  gap: 4px !important;
+  justify-content: center !important;
+}
+
+.MuiPaginationItem-root {
+  min-width: 32px !important;  
+  height: 32px !important;
+  border-radius: 50% !important;
+  font-size: 0.875rem !important;
+  padding: 0 !important;
+  margin: 0 2px !important;  
+  background-color: transparent !important;
+  color: rgba(0, 0, 0, 0.6) !important;
+  border: 1px solid rgba(0, 0, 0, 0.1) !important;
+  transition: all 0.2s ease !important;
+}
+
+.MuiPaginationItem-root.Mui-selected {
+  background-color: var(--sber-green) !important;
+  color: white !important;
+  border-color: var(--sber-green) !important;
+  transform: scale(1.05);
+}
+
+.MuiPaginationItem-root:hover {
+  background-color: var(--sber-light-green) !important;
+  border-color: var(--sber-green) !important;
+}
+
+@media (max-width: 600px) {
+  .container {
+    padding: 12px;
+  }
+  
+  .user-tag {
+    font-size: 14px;
+  }
+  
+  .item-card {
+    padding: 12px;
+  }
+  
+  button,
+  .MuiButton-contained {
+    padding: 10px 16px !important;
+    font-size: 14px !important;
+  }
+}
+
+
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.quantity-button {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background-color: var(--sber-green);
+  color: white;
+  border: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  padding: 0;
+}
+
+.quantity-button:hover {
+  background-color: var(--sber-dark-green);
+}
+
+.quantity-button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+.quantity-value {
+  min-width: 24px;
+  text-align: center;
+  font-weight: 500;
+  font-size: 16px;
+}
+
+@keyframes gentleBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+.sbercat-header {
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+  animation: gentleBounce 3s ease-in-out infinite;
+  transition: all 0.3s ease;
+}
+
+.sbercat-header:hover {
+  animation: gentleBounce 1s ease-in-out infinite;
+  transform: scale(1.1);
+}
+
+
+@keyframes pulse {
+  0% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.8; }
+  100% { transform: scale(1); opacity: 1; }
+}
